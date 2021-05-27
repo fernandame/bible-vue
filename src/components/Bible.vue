@@ -71,7 +71,7 @@ export default {
       const book = this.books[this.bookIndex];
 
       const res = await api
-        .get(`verses/nvi/${book.abbrev.pt}/${this.currentChapter}`)
+        .get(`verses/acf/${book.abbrev.pt}/${this.currentChapter}`)
         .catch((err) => {
           console.log(err);
         });
