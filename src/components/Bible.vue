@@ -1,27 +1,25 @@
 <template>
-  <div class="p-16">
-    <p class="text-4xl" v-if="isLoading === false">
-      {{ bookName }}, {{ currentChapter }}
-    </p>
+  <div v-if="isLoading === false">
+    <p class="text-4xl">{{ bookName }}, {{ currentChapter }}</p>
     <ul class="mt-6">
       <li
         class="text-left odd:bg-gray-100 p-2"
         v-for="(verse, i) in verses"
         :key="i"
       >
-        {{ i + 1 }}. {{ verse.text }}
+        <span class="font-semibold">{{ i + 1 }}.</span> {{ verse.text }}
       </li>
     </ul>
-    <div class="flex justify-center space-x-5 mt-6">
+    <div class="flex justify-center space-x-5 mt-12">
       <button
-        class="p-3 bg-green-500 text-white shadow-md disabled:opacity-60"
+        class="p-3 bg-green-500 text-white shadow-md disabled:opacity-60 focus:outline-none rounded active:bg-green-600"
         :disabled="(bookIndex === 0 && currentChapter <= 1) || isLoading"
         @click="fetchPrev()"
       >
         Anterior
       </button>
       <button
-        class="p-3 bg-green-500 text-white shadow-md disabled:opacity-60"
+        class="p-3 bg-green-500 text-white shadow-md disabled:opacity-60 focus:outline-none rounded active:bg-green-600"
         :disabled="isLoading"
         @click="fetchNext()"
       >
@@ -55,6 +53,18 @@ export default {
       isLoading: true,
     };
   },
+  props: {
+    version: {
+      type: String,
+    },
+  },
+  watch: {
+    version: {
+      handler() {
+        this.getData();
+      },
+    },
+  },
   async mounted() {
     await this.fetchBooks();
     await this.getData();
@@ -71,7 +81,11 @@ export default {
       const book = this.books[this.bookIndex];
 
       const res = await api
-        .get(`verses/acf/${book.abbrev.pt}/${this.currentChapter}`)
+        .get(
+          `verses/${this.version || "acf"}/${book.abbrev.pt}/${
+            this.currentChapter
+          }`
+        )
         .catch((err) => {
           console.log(err);
         });
@@ -116,5 +130,3 @@ export default {
   },
 };
 </script>
-
-<style></style>
