@@ -49,7 +49,7 @@ export default {
     return {
       books: [],
       bookIndex: 0,
-      currentChapter: 49,
+      currentChapter: 1,
       bookName: "",
       verses: [],
       isLoading: true,
