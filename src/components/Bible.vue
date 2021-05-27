@@ -49,7 +49,7 @@ export default {
     return {
       books: [],
       bookIndex: 0,
-      currentChapter: 1,
+      currentChapter: 49,
       bookName: "",
       verses: [],
       isLoading: true,
@@ -83,11 +83,12 @@ export default {
 
     fetchNext() {
       this.isLoading = true;
-      this.currentChapter++;
 
       let book = this.books[this.bookIndex];
 
-      const isFinalChapter = this.currentChapter + 1 > book.chapters;
+      const isFinalChapter = this.currentChapter === book.chapters;
+
+      this.currentChapter++;
 
       if (isFinalChapter) {
         this.bookIndex++;
