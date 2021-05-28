@@ -4,10 +4,10 @@
       <div
         class="flex flex-col md:flex-row items-center justify-center space-x-2"
       >
-        <span class="text-lg">Bíblias:</span>
+        <span class="text-lg">Bíblia:</span>
         <select
           v-model="version"
-          class="p-1 border-2 border-gray-200 focus:outline-none"
+          class="p-1 border-2 border-gray-200 focus:outline-none w-56"
         >
           <option value="" selected disabled>Selecione uma versão</option>
           <option value="acf">Almeida Corrigida Fiel</option>
@@ -18,15 +18,30 @@
       <div
         class="flex flex-col md:flex-row items-center justify-center space-x-2 mt-2 md:mt-6 lg:mt-0"
       >
-        <span class="text-lg">Livros:</span>
+        <span class="text-lg">Livro:</span>
         <select
           v-model="newBook"
-          class="p-1 border-2 border-gray-200 focus:outline-none"
-          @change="handleBookChange()"
+          class="p-1 border-2 border-gray-200 focus:outline-none w-56"
+          @change="currentChapter = 1"
         >
           <option value="" selected disabled>Selecione um livro</option>
           <option v-for="(book, i) in books" :key="i" :value="book.name">
             {{ book.name }}
+          </option>
+        </select>
+      </div>
+
+      <div
+        class="flex flex-col md:flex-row items-center justify-center space-x-2 mt-2 md:mt-6 lg:mt-0"
+      >
+        <span class="text-lg">Capítulo:</span>
+        <select
+          v-model="currentChapter"
+          class="p-1 border-2 border-gray-200 focus:outline-none w-56"
+        >
+          <option value="" selected disabled>Selecione um capítulo</option>
+          <option v-for="chapter in chapters" :key="chapter" :value="chapter">
+            {{ chapter }}
           </option>
         </select>
       </div>
@@ -83,14 +98,15 @@ export default {
   name: "Bible",
   data() {
     return {
-      version: "",
+      isLoading: true,
       books: [],
       bookIndex: 0,
       currentChapter: 1,
       bookName: "",
       verses: [],
-      isLoading: true,
+      chapters: 0,
       newBook: "",
+      version: "",
     };
   },
   watch: {
@@ -105,6 +121,11 @@ export default {
         this.getData();
       },
     },
+    currentChapter: {
+      handler() {
+        this.getData();
+      },
+    },
   },
   async mounted() {
     await this.fetchBooks();
@@ -114,10 +135,6 @@ export default {
     async fetchBooks() {
       const res = await api.get("books");
       this.books = res.data;
-    },
-
-    handleBookChange() {
-      this.currentChapter = 1;
     },
 
     async getData() {
@@ -134,6 +151,8 @@ export default {
 
       this.bookName = res.data.book.name;
       this.verses = res.data.verses;
+      this.chapters = book.chapters;
+
       this.isLoading = false;
     },
 
