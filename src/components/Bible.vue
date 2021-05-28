@@ -1,30 +1,68 @@
 <template>
-  <div v-if="isLoading === false">
-    <p class="text-4xl">{{ bookName }}, {{ currentChapter }}</p>
-    <ul class="mt-6">
-      <li
-        class="text-left odd:bg-gray-100 p-2"
-        v-for="(verse, i) in verses"
-        :key="i"
+  <div class="flex flex-col justify-center items-center">
+    <div class="flex flex-col lg:flex-row lg:space-x-10">
+      <div
+        class="flex flex-col md:flex-row items-center justify-center space-x-2"
       >
-        <span class="font-semibold">{{ i + 1 }}.</span> {{ verse.text }}
-      </li>
-    </ul>
-    <div class="flex justify-center space-x-5 mt-12">
-      <button
-        class="p-3 bg-green-500 text-white shadow-md disabled:opacity-60 focus:outline-none rounded active:bg-green-600"
-        :disabled="(bookIndex === 0 && currentChapter <= 1) || isLoading"
-        @click="fetchPrev()"
+        <span class="text-lg">Bíblias:</span>
+        <select
+          v-model="version"
+          class="p-1 border-2 border-gray-200 focus:outline-none"
+        >
+          <option value="" selected disabled>Selecione uma versão</option>
+          <option value="acf">Almeida Corrigida Fiel</option>
+          <option value="nvi">Nova Versão Internacional</option>
+        </select>
+      </div>
+
+      <div
+        class="flex flex-col md:flex-row items-center justify-center space-x-2 mt-2 md:mt-6 lg:mt-0"
       >
-        Anterior
-      </button>
-      <button
-        class="p-3 bg-green-500 text-white shadow-md disabled:opacity-60 focus:outline-none rounded active:bg-green-600"
-        :disabled="isLoading"
-        @click="fetchNext()"
-      >
-        Próximo
-      </button>
+        <span class="text-lg">Livros:</span>
+        <select
+          v-model="newBook"
+          class="p-1 border-2 border-gray-200 focus:outline-none"
+          @change="handleBookChange()"
+        >
+          <option value="" selected disabled>Selecione um livro</option>
+          <option v-for="(book, i) in books" :key="i" :value="book.name">
+            {{ book.name }}
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <div v-if="isLoading === false" class="mt-10 max-w-6xl">
+      <p class="text-4xl">{{ bookName }}, {{ currentChapter }}</p>
+      <ul class="mt-6">
+        <li
+          class="text-left odd:bg-gray-100 p-2"
+          v-for="(verse, i) in verses"
+          :key="i"
+        >
+          <span class="font-semibold">{{ i + 1 }}.</span> {{ verse.text }}
+        </li>
+      </ul>
+      <div class="flex justify-center space-x-5 mt-12">
+        <button
+          class="p-3 bg-green-500 text-white shadow-md disabled:opacity-60 focus:outline-none rounded active:bg-green-600"
+          :disabled="(bookIndex === 0 && currentChapter <= 1) || isLoading"
+          @click="fetchPrev()"
+        >
+          Anterior
+        </button>
+        <button
+          class="p-3 bg-green-500 text-white shadow-md disabled:opacity-60 focus:outline-none rounded active:bg-green-600"
+          :disabled="
+            (bookIndex === books.length - 1 &&
+              currentChapter === books[bookIndex].chapters) ||
+              isLoading
+          "
+          @click="fetchNext()"
+        >
+          Próximo
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -45,22 +83,25 @@ export default {
   name: "Bible",
   data() {
     return {
+      version: "",
       books: [],
       bookIndex: 0,
       currentChapter: 1,
       bookName: "",
       verses: [],
       isLoading: true,
+      newBook: "",
     };
-  },
-  props: {
-    version: {
-      type: String,
-    },
   },
   watch: {
     version: {
       handler() {
+        this.getData();
+      },
+    },
+    newBook: {
+      handler() {
+        this.bookIndex = this.books.findIndex((e) => e.name === this.newBook);
         this.getData();
       },
     },
@@ -75,24 +116,25 @@ export default {
       this.books = res.data;
     },
 
+    handleBookChange() {
+      this.currentChapter = 1;
+    },
+
     async getData() {
+      this.isLoading = true;
       this.verses = [];
 
       const book = this.books[this.bookIndex];
 
-      const res = await api
-        .get(
-          `verses/${this.version || "acf"}/${book.abbrev.pt}/${
-            this.currentChapter
-          }`
-        )
-        .catch((err) => {
-          console.log(err);
-        });
+      const res = await api.get(
+        `verses/${this.version || "acf"}/${book.abbrev.pt}/${
+          this.currentChapter
+        }`
+      );
 
-      this.isLoading = false;
       this.bookName = res.data.book.name;
       this.verses = res.data.verses;
+      this.isLoading = false;
     },
 
     fetchNext() {
@@ -108,6 +150,7 @@ export default {
         this.bookIndex++;
         book = this.books[this.bookIndex];
         this.currentChapter = 1;
+        this.newBook = book.name;
       }
 
       this.getData();
@@ -122,6 +165,7 @@ export default {
       if (this.currentChapter < 1) {
         this.bookIndex--;
         book = this.books[this.bookIndex];
+        this.newBook = book.name;
         this.currentChapter = book.chapters;
       }
 
